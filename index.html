@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,10 +7,9 @@
 <title>My Reading Tracker</title>
 <style>
 :root{--bg:#eef0ec;--card:#fbfbf8;--ink:#1d2623;--mute:#66726d;--line:#d5dad4;--acc:#1f5c4d;--accsoft:#dcebe4;--gold:#9a6f17;--done:#8a948f;--on:#fbfbf8}
-@media (prefers-color-scheme:dark){:root{--bg:#121816;--card:#1a2321;--ink:#e8eeea;--mute:#93a29b;--line:#2c3a36;--acc:#5fc2a4;--accsoft:#1f3a33;--gold:#e0b45a;--done:#6b7a74;--on:#10201b}}
+@media(prefers-color-scheme:dark){:root{--bg:#121816;--card:#1a2321;--ink:#e8eeea;--mute:#93a29b;--line:#2c3a36;--acc:#5fc2a4;--accsoft:#1f3a33;--gold:#e0b45a;--done:#6b7a74;--on:#10201b}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;line-height:1.5}
 .wrap{max-width:640px;margin:0 auto;padding:20px 16px 60px}
 h1{font-size:2rem;line-height:1.1;margin:8px 0 4px}
@@ -24,6 +24,7 @@ h1{font-size:2rem;line-height:1.1;margin:8px 0 4px}
 .tools{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
 button{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:99px;cursor:pointer;min-height:40px}
 button.pri,button[aria-pressed="true"]{background:var(--acc);color:var(--on);border-color:var(--acc)}
+button:disabled{opacity:.55;cursor:not-allowed}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 section{margin-top:22px}
 .sh{display:flex;justify-content:space-between;align-items:baseline;margin:0 4px 8px}
@@ -39,13 +40,13 @@ section{margin-top:22px}
 .a{display:block;font-size:.85rem;color:var(--mute)}
 .meta{display:block;font-size:.82rem;color:var(--gold);margin-top:2px}
 .card.done .t{text-decoration:line-through;text-decoration-color:var(--done);color:var(--done)}
-.n{flex:none;color:var(--mute);font-size:.8rem;font-variant-numeric:tabular-nums}
 .pb{height:6px;background:var(--accsoft);border-radius:99px;overflow:hidden;margin:10px 0 0}
 .pb i{display:block;height:100%;background:var(--acc)}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .panel{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-.panel label{display:block;font-size:.85rem;color:var(--mute);margin:8px 0 4px}
+.panel label,#addp label,#authp label{display:block;font-size:.85rem;color:var(--mute);margin:8px 0 4px}
 input[type=number]{width:100%;font:inherit;font-size:1.1rem;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+input[type=text],input[type=email],input[type=password]{width:100%;font:inherit;font-size:1rem;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .hist{list-style:none;margin:0;padding:0}
 .hist li{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
 .hist li:last-child{border-bottom:0}
@@ -54,316 +55,908 @@ input[type=number]{width:100%;font:inherit;font-size:1.1rem;padding:10px;border:
 .hist .rt{color:var(--mute);font-size:.8rem;min-width:5.5em;text-align:right}
 .hist button{padding:2px 10px;min-height:32px}
 .hint{color:var(--gold);font-size:.85rem;margin-top:8px}
-.empty{color:var(--mute);font-size:.9rem}
-.hide{display:none}
+.empty,.note,.sync,.msg{color:var(--mute);font-size:.85rem}
+.hide{display:none!important}
 details{margin-top:28px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 summary{cursor:pointer}
 textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
-.msg{color:var(--mute);font-size:.85rem;min-height:1.2em}
-.note{color:var(--mute);font-size:.82rem}
-.win{display:none;text-align:center;margin-top:12px;color:var(--gold)}
-input[type=text],input[type=password]{width:100%;font:inherit;font-size:1rem;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
-#addp label,#authp label{display:block;font-size:.85rem;color:var(--mute);margin:8px 0 4px}
-.sync{font-size:.82rem;color:var(--mute);margin:-10px 0 14px}
+.msg{min-height:1.2em;overflow-wrap:anywhere}
+.sync{margin:8px 0 14px;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>My Reading Tracker</h1>
   <p class="sub">Add your books, start them, log pages after each session, check them off when done.</p>
-  <div class="sync"><span id="sync" role="status"></span> <span id="who"></span> <button id="sin" class="hide" type="button">Sign in to sync</button> <button id="sout" class="hide" type="button">Sign out</button></div>
-  <div class="card hide" id="authp">
-    <label for="em">Email</label><input type="text" id="em" inputmode="email" autocomplete="email" maxlength="200">
-    <label for="pw">Password (6+ characters)</label><input type="password" id="pw" autocomplete="current-password" maxlength="100">
-    <div class="acts"><button class="pri" id="li" type="button">Sign in</button><button id="su" type="button">Create account</button><button id="ac" type="button">Cancel</button></div>
-    <div class="msg" id="am" role="status"></div>
+
+  <div class="sync">
+    <span id="sync" role="status">Checking sign-in…</span>
+    <span id="who"></span>
+    <button id="sout" class="hide" type="button">Sign out</button>
   </div>
 
-  <div class="hero">
-    <div class="big"><b id="cnt">0</b><span id="of">of 0 finished</span></div>
-    <div class="stats" id="stats"></div>
-    <div class="bar"><i id="fill"></i></div>
-  </div>
-
-  <div class="tools" role="group" aria-label="Filter">
-    <button data-f="all" aria-pressed="true">All</button>
-    <button data-f="todo" aria-pressed="false">Not started</button>
-    <button data-f="reading" aria-pressed="false">Reading</button>
-    <button data-f="done" aria-pressed="false">Finished</button>
-  </div>
-  <div class="tools"><button class="pri" id="addb" type="button">+ Add a book</button></div>
-
-  <div class="card hide" id="addp">
-    <label for="nt">Title</label><input type="text" id="nt" maxlength="150" autocomplete="off">
-    <label for="na">Author (optional)</label><input type="text" id="na" maxlength="100" autocomplete="off">
-    <label for="ng">Group or series (optional)</label><input type="text" id="ng" list="gl" maxlength="80" autocomplete="off">
-    <datalist id="gl"></datalist>
-    <label for="np">Pages (optional)</label><input type="number" id="np" min="1" inputmode="numeric">
-    <div class="acts"><button class="pri" id="adds" type="button">Add book</button><button id="addc" type="button">Cancel</button></div>
-    <div class="msg" id="addm" role="status"></div>
-  </div>
-
-  <main id="list"></main>
-
-  <details>
-    <summary>Backup and restore</summary>
-    <p class="note">Your data saves on this device automatically. Paste a saved code here to restore it on another device or after clearing your browser.</p>
-    <textarea id="code" aria-label="Progress code"></textarea>
-    <div class="tools">
-      <button id="exp">Copy my code</button>
-      <button id="imp">Restore from code</button>
-      <button id="rst">Reset all</button>
+  <div class="card" id="authp">
+    <h2 id="authTitle">Sign in or create an account</h2>
+    <p class="note">You must sign in to use your Reading Tracker. Your reading list is saved to your account.</p>
+    <label for="em">Email</label>
+    <input type="email" id="em" autocomplete="email" maxlength="200">
+    <label for="pw">Password (6+ characters)</label>
+    <input type="password" id="pw" autocomplete="current-password" minlength="6" maxlength="100">
+    <div class="acts">
+      <button class="pri" id="li" type="button">Sign in</button>
+      <button id="su" type="button">Create account</button>
     </div>
-    <div class="msg" id="msg" role="status"></div>
-  </details>
+    <div class="msg" id="am" role="status" aria-live="polite"></div>
+  </div>
+
+  <div id="app" class="hide">
+    <div class="hero">
+      <div class="big"><b id="cnt">0</b><span id="of">of 0 finished</span></div>
+      <div class="stats" id="stats"></div>
+      <div class="bar"><i id="fill"></i></div>
+    </div>
+
+    <div class="tools" role="group" aria-label="Filter">
+      <button data-f="all" aria-pressed="true">All</button>
+      <button data-f="todo" aria-pressed="false">Not started</button>
+      <button data-f="reading" aria-pressed="false">Reading</button>
+      <button data-f="done" aria-pressed="false">Finished</button>
+    </div>
+
+    <div class="tools"><button class="pri" id="addb" type="button">+ Add a book</button></div>
+
+    <div class="card hide" id="addp">
+      <label for="nt">Title</label>
+      <input type="text" id="nt" maxlength="150" autocomplete="off">
+      <label for="na">Author (optional)</label>
+      <input type="text" id="na" maxlength="100" autocomplete="off">
+      <label for="ng">Group or series (optional)</label>
+      <input type="text" id="ng" list="gl" maxlength="80" autocomplete="off">
+      <datalist id="gl"></datalist>
+      <label for="np">Pages (optional)</label>
+      <input type="number" id="np" min="1" inputmode="numeric">
+      <div class="acts">
+        <button class="pri" id="adds" type="button">Add book</button>
+        <button id="addc" type="button">Cancel</button>
+      </div>
+      <div class="msg" id="addm" role="status"></div>
+    </div>
+
+    <main id="list"></main>
+
+    <details>
+      <summary>Backup and restore</summary>
+      <p class="note">Your library is saved to your signed-in account. You can also copy a backup code.</p>
+      <textarea id="code" aria-label="Progress code"></textarea>
+      <div class="tools">
+        <button id="exp" type="button">Copy my code</button>
+        <button id="imp" type="button">Restore from code</button>
+        <button id="rst" type="button">Reset all</button>
+      </div>
+      <div class="msg" id="msg" role="status"></div>
+    </details>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
-  function A(a,ts){return ts.map(function(t){return [t,a]})}
-  var HP="Harry Potter and the ";
-  var STARTER=[
-    ["🔐 Robert Langdon",A("Dan Brown",["Angels & Demons","The Da Vinci Code","The Lost Symbol","Inferno","Origin","The Secret of Secrets"])],
-    ["⚔️ Alexandre Dumas",A("Alexandre Dumas",["The Count of Monte Cristo","The Three Musketeers","Twenty Years After","The Vicomte de Bragelonne","The Man in the Iron Mask"])],
-    ["🚀 Jules Verne",A("Jules Verne",["Journey to the Center of the Earth","Twenty Thousand Leagues Under the Seas","Around the World in Eighty Days","From the Earth to the Moon","The Mysterious Island"])],
-    ["🪄 Harry Potter",A("J. K. Rowling",["Philosopher’s Stone","Chamber of Secrets","Prisoner of Azkaban","Goblet of Fire","Order of the Phoenix","Half-Blood Prince","Deathly Hallows"].map(function(t){return HP+t}))],
-    ["🏛️ Historical Nonfiction",[["The Silk Roads: A New History of the World","Peter Frankopan"],["The New Map","Daniel Yergin"],["Prisoners of Geography","Tim Marshall"],["The Revenge of Geography","Robert D. Kaplan"]]],
-    ["🕵️ Historical Adventure / Mystery",[["The Scarlet Pimpernel","Baroness Orczy"],["The Prisoner of Zenda","Anthony Hope"],["The Name of the Rose","Umberto Eco"],["The Shadow of the Wind","Carlos Ruiz Zafón"]]]
+  "use strict";
+
+  // IMPORTANT: Replace both placeholders with your Supabase project values.
+  var SB_URL = "PASTE_YOUR_SUPABASE_URL";
+  var SB_KEY = "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY";
+
+  var sb = null;
+  var uid = null;
+  var ready = false;
+  var loading = false;
+  var lib = {b:[], n:1, u:0};
+  var filter = "all";
+  var open = {};
+  var saveTimer = null;
+  var generation = 0;
+  var channel = null;
+  var lastLocalWrite = 0;
+  var pendingCloudSave = false;
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  function today(){
+    var d = new Date();
+    return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);
+  }
+
+  function fmt(s){
+    var a = String(s).split("-");
+    if(a.length !== 3) return s;
+    return new Date(+a[0], a[1]-1, +a[2]).toLocaleDateString(undefined,{
+      month:"short", day:"numeric", year:"numeric"
+    });
+  }
+
+  function pages(b){
+    return b.l.reduce(function(n,x){ return n+x.p; },0);
+  }
+
+  function status(b){
+    return b.f ? "done" : b.s ? "reading" : "todo";
+  }
+
+  function mk(tag,cls,txt){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(txt != null) e.textContent = txt;
+    return e;
+  }
+
+  function btn(label,cls,fn){
+    var b = mk("button",cls,label);
+    b.type = "button";
+    b.onclick = fn;
+    return b;
+  }
+
+  function inp(type,id,val,extra){
+    var i = mk("input");
+    i.type = type;
+    i.id = id;
+    if(val != null) i.value = val;
+    if(type === "number"){
+      i.min = "1";
+      i.inputMode = "numeric";
+    } else {
+      i.maxLength = extra || 150;
+    }
+    return i;
+  }
+
+  function lab(txt,f){
+    var l = mk("label",null,txt);
+    l.setAttribute("for",f);
+    return l;
+  }
+
+  function sync(t){
+    $("sync").textContent = t;
+  }
+
+  function authMessage(t){
+    $("am").textContent = t;
+  }
+
+  function emptyLib(){
+    return {b:[],n:1,u:0};
+  }
+
+  function addBook(ti,au,g,t){
+    lib.b.push({
+      id:lib.n++,
+      ti:ti,
+      au:au||"",
+      g:g||"",
+      t:t>0?t:0,
+      l:[]
+    });
+  }
+
+  var HP = "Harry Potter and ";
+  var STARTER = [
+    ["🔐 Robert Langdon", [
+      ["Angels & Demons","Dan Brown"],
+      ["The Da Vinci Code","Dan Brown"],
+      ["The Lost Symbol","Dan Brown"],
+      ["Inferno","Dan Brown"],
+      ["Origin","Dan Brown"],
+      ["The Secret of Secrets","Dan Brown"]
+    ]],
+    ["⚔️ Alexandre Dumas", [
+      ["The Count of Monte Cristo","Alexandre Dumas"],
+      ["The Three Musketeers","Alexandre Dumas"],
+      ["Twenty Years After","Alexandre Dumas"],
+      ["The Vicomte de Bragelonne","Alexandre Dumas"],
+      ["The Man in the Iron Mask","Alexandre Dumas"]
+    ]],
+    ["🚀 Jules Verne", [
+      ["Journey to the Center of the Earth","Jules Verne"],
+      ["Twenty Thousand Leagues Under the Seas","Jules Verne"],
+      ["Around the World in Eighty Days","Jules Verne"],
+      ["From the Earth to the Moon","Jules Verne"],
+      ["The Mysterious Island","Jules Verne"]
+    ]],
+    ["🪄 Harry Potter", [
+      [HP+"the Philosopher’s Stone","J. K. Rowling"],
+      [HP+"the Chamber of Secrets","J. K. Rowling"],
+      [HP+"the Prisoner of Azkaban","J. K. Rowling"],
+      [HP+"the Goblet of Fire","J. K. Rowling"],
+      [HP+"the Order of the Phoenix","J. K. Rowling"],
+      [HP+"the Half-Blood Prince","J. K. Rowling"],
+      [HP+"the Deathly Hallows","J. K. Rowling"]
+    ]],
+    ["🏛️ Historical Nonfiction", [
+      ["The Silk Roads: A New History of the World","Peter Frankopan"],
+      ["The New Map","Daniel Yergin"],
+      ["Prisoners of Geography","Tim Marshall"],
+      ["The Revenge of Geography","Robert D. Kaplan"]
+    ]],
+    ["🕵️ Historical Adventure / Mystery", [
+      ["The Scarlet Pimpernel","Baroness Orczy"],
+      ["The Prisoner of Zenda","Anthony Hope"],
+      ["The Name of the Rose","Umberto Eco"],
+      ["The Shadow of the Wind","Carlos Ruiz Zafón"]
+    ]]
   ];
-  var KEY="readingTracker.v3", V2="saturdayReadingList.v2";
-  // lib = {b:[{id,ti,au,g,t,s,f,l:[{d,p}]}], n:nextId, u:updatedMs}
-  var lib={b:[],n:1,u:0}, filter="all", open={}, ref=null, timer=null;
-  var $=function(i){return document.getElementById(i)};
 
-  function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
-  function fmt(s){var a=String(s).split("-");if(a.length!==3)return s;return new Date(+a[0],a[1]-1,+a[2]).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})}
-  function pages(b){return b.l.reduce(function(n,x){return n+x.p},0)}
-  function status(b){return b.f?"done":b.s?"reading":"todo"}
-  function mk(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
-  function btn(label,cls,fn){var b=mk("button",cls,label);b.type="button";b.onclick=fn;return b}
-  function inp(type,id,val,extra){var i=mk("input");i.type=type;i.id=id;if(val!=null)i.value=val;if(type==="number"){i.min="1";i.inputMode="numeric"}else i.maxLength=extra||150;return i}
-  function lab(txt,f){var l=mk("label",null,txt);l.setAttribute("for",f);return l}
-  function sync(t){$("sync").textContent=t}
-
-  function addBook(ti,au,g,t){lib.b.push({id:lib.n++,ti:ti,au:au||"",g:g||"",t:t>0?t:0,l:[]})}
-  function starter(){STARTER.forEach(function(s){s[1].forEach(function(x){addBook(x[0],x[1],s[0])})})}
+  function starter(){
+    STARTER.forEach(function(group){
+      group[1].forEach(function(book){
+        addBook(book[0],book[1],group[0],0);
+      });
+    });
+  }
 
   function clean(o){
-    if(!o||typeof o!=="object"||!Array.isArray(o.b))return null;
-    var r={b:[],n:1,u:+o.u||Date.now()},S=function(x,m){return String(x==null?"":x).slice(0,m)};
+    if(!o || typeof o !== "object" || !Array.isArray(o.b)) return null;
+    var r = {b:[],n:1,u:+o.u||Date.now()};
+    var S = function(x,m){ return String(x==null?"":x).slice(0,m); };
+
     o.b.slice(0,2000).forEach(function(x){
-      if(!x||!x.ti)return;
-      var b={id:r.n++,ti:S(x.ti,150),au:S(x.au,100),g:S(x.g,80),t:x.t>0?Math.round(+x.t):0,l:[]};
-      if(x.s)b.s=S(x.s,10);if(x.f)b.f=S(x.f,10);
-      (Array.isArray(x.l)?x.l:[]).forEach(function(q){if(q&&q.p>0)b.l.push({d:S(q.d||today(),10),p:Math.round(+q.p)})});
+      if(!x || !x.ti) return;
+      var b = {
+        id:r.n++,
+        ti:S(x.ti,150),
+        au:S(x.au,100),
+        g:S(x.g,80),
+        t:x.t>0 ? Math.round(+x.t) : 0,
+        l:[]
+      };
+      if(x.s) b.s = S(x.s,10);
+      if(x.f) b.f = S(x.f,10);
+
+      (Array.isArray(x.l)?x.l:[]).forEach(function(q){
+        if(q && q.p>0){
+          b.l.push({d:S(q.d||today(),10),p:Math.round(+q.p)});
+        }
+      });
       r.b.push(b);
     });
     return r;
   }
 
-  function load(){
-    try{
-      var r=localStorage.getItem(KEY);
-      if(r){var c=clean(JSON.parse(r));if(c){lib=c;return}}
-      var o=localStorage.getItem(V2);
-      if(o){ // carry over progress from the earlier Saturday list
-        var old=JSON.parse(o)||{},k=0;starter();
-        lib.b.forEach(function(b){k++;var x=old[k];if(!x)return;
-          if(x.s)b.s=x.s;if(x.f)b.f=x.f;if(x.t>0)b.t=x.t;if(Array.isArray(x.l))b.l=x.l});
-        lib.u=Date.now();
-      }
-    }catch(e){}
+  function showApp(on){
+    $("app").classList.toggle("hide",!on);
+    $("authp").classList.toggle("hide",!!on);
+    $("sout").classList.toggle("hide",!on);
+    if(!on) $("who").textContent = "";
   }
-  function save(){
-    try{localStorage.setItem(KEY,JSON.stringify(lib));$("msg").textContent=""}
-    catch(e){$("msg").textContent="Could not save in this browser. Use Copy my code below to keep your data."}
-    $("code").value=JSON.stringify(lib);push();
-  }
-  function push(){
-    if(!ref)return;clearTimeout(timer);
-    timer=setTimeout(function(){
-      ref.set({json:JSON.stringify(lib),u:lib.u}).then(function(){sync("Synced to your account")},function(){ref=null;sync("Saved on this device only")});
-    },700);
-  }
-  function change(fn){fn();lib.u=Date.now();save();render()}
 
-  // ---- Supabase account sync (fill these two in; see setup.sql) ----
-  var SB_URL="https://vsathacbokrpejpmqfkh.supabase.co", SB_KEY="sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE", sb=null, uid=null;
-  function configured(){return /^https:\/\/.+\.supabase\.co/.test(SB_URL)&&SB_KEY.indexOf("PASTE")!==0&&!!window.supabase}
-  function authUI(on,email){
-    $("who").textContent=on?email:"";
-    $("sin").classList.toggle("hide",on);$("sout").classList.toggle("hide",!on);
-    if(on)$("authp").classList.add("hide");
+  function resetUI(){
+    clearTimeout(saveTimer);
+    generation++;
+    uid = null;
+    ready = false;
+    loading = false;
+    pendingCloudSave = false;
+    lib = emptyLib();
+    open = {};
+    filter = "all";
+
+    if(channel && sb){
+      sb.removeChannel(channel);
+      channel = null;
+    }
+
+    $("code").value = "";
+    $("msg").textContent = "";
+    $("addm").textContent = "";
+    $("addp").classList.add("hide");
+    ["nt","na","ng","np"].forEach(function(id){ $(id).value = ""; });
+
+    document.querySelectorAll("[data-f]").forEach(function(b){
+      b.setAttribute("aria-pressed",b.getAttribute("data-f")==="all"?"true":"false");
+    });
+
+    showApp(false);
+    render();
   }
-  async function attach(session){
-    if(!session){ref=null;uid=null;authUI(false);sync("Saved on this device");return}
-    uid=session.user.id;authUI(true,session.user.email);
+
+  function canEdit(){
+    return !!(uid && ready && !loading);
+  }
+
+  async function pushNow(){
+    if(!canEdit() || !sb) return false;
+
+    var targetUid = uid;
+    var myGeneration = generation;
+    var snapshot = JSON.parse(JSON.stringify(lib));
+    pendingCloudSave = true;
+    sync("Saving changes to your account…");
+
     try{
-      var r=await sb.from("libraries").select("data").eq("user_id",uid).maybeSingle();
-      if(r.error)throw r.error;
-      var ru=0,rem=r.data&&clean(r.data.data);
-      if(rem){ru=rem.u;if(rem.u>(lib.u||0)){lib=rem;try{localStorage.setItem(KEY,JSON.stringify(lib))}catch(e){}$("code").value=JSON.stringify(lib);render()}}
-      ref={set:function(){return sb.from("libraries").upsert({user_id:uid,data:lib,updated_at:new Date().toISOString()}).then(function(x){if(x.error)throw x.error})}};
-      sync("Synced to your account");
-      if(!rem||(lib.u||0)>ru)push();
-    }catch(e){sync("Signed in, but sync failed. Saved on this device.")}
+      var result = await sb.from("libraries").upsert({
+        user_id:targetUid,
+        data:snapshot,
+        updated_at:new Date().toISOString()
+      },{onConflict:"user_id"});
+
+      if(result.error) throw result.error;
+
+      if(uid !== targetUid || generation !== myGeneration) return false;
+
+      pendingCloudSave = false;
+      sync("All changes saved to your account.");
+      $("msg").textContent = "";
+      return true;
+    }catch(e){
+      if(uid === targetUid && generation === myGeneration){
+        pendingCloudSave = false;
+        sync("Cloud save failed. Check your internet connection.");
+        $("msg").textContent = "Could not sync: "+(e.message||"Unknown error")+
+          ". Your changes remain on this page. Try again before leaving.";
+      }
+      return false;
+    }
   }
+
+  function queueSave(){
+    if(!canEdit()) return;
+    lib.u = Date.now();
+    lastLocalWrite = Date.now();
+    pendingCloudSave = true;
+    $("code").value = JSON.stringify(lib);
+    clearTimeout(saveTimer);
+    sync("Change made. Waiting to sync…");
+    saveTimer = setTimeout(pushNow,500);
+  }
+
+  function change(fn){
+    if(!canEdit()) return;
+    fn();
+    queueSave();
+    render();
+  }
+
+  async function loadAccount(session){
+    var myGeneration = ++generation;
+    clearTimeout(saveTimer);
+
+    if(!session){
+      resetUI();
+      sync("Please sign in to use your Reading Tracker.");
+      $("authTitle").textContent = "Sign in or create an account";
+      return;
+    }
+
+    uid = session.user.id;
+    ready = false;
+    loading = true;
+    pendingCloudSave = false;
+    lib = emptyLib();
+    open = {};
+    showApp(false);
+    $("who").textContent = session.user.email || "Signed in";
+    $("authTitle").textContent = "Loading your reading library…";
+    authMessage("");
+    sync("Loading your account's reading list…");
+
+    try{
+      var result = await sb.from("libraries")
+        .select("data")
+        .eq("user_id",uid)
+        .maybeSingle();
+
+      if(result.error) throw result.error;
+      if(myGeneration !== generation || !uid || uid !== session.user.id) return;
+
+      var remote = result.data ? clean(result.data.data) : null;
+      lib = remote || emptyLib();
+      $("code").value = JSON.stringify(lib);
+      render();
+
+      ready = true;
+      loading = false;
+      showApp(true);
+      $("authTitle").textContent = "Sign in or create an account";
+
+      if(!remote){
+        // New accounts get an empty cloud library.
+        lib.u = Date.now();
+        queueSave();
+      }else{
+        sync("Your account's reading list is loaded.");
+      }
+
+      subscribeToChanges(session.user.id,myGeneration);
+    }catch(e){
+      if(myGeneration !== generation) return;
+      ready = false;
+      loading = false;
+      showApp(false);
+      sync("Could not load your library.");
+      authMessage(
+        "We couldn't load your account data. Check your connection and the Supabase libraries table and policies. Details: "+
+        (e.message||"Unknown error")
+      );
+    }
+  }
+
+  function subscribeToChanges(userId,sessionGeneration){
+    if(channel && sb){
+      sb.removeChannel(channel);
+      channel = null;
+    }
+
+    // Realtime changes can update other open devices. Enable Realtime for
+    // public.libraries in Supabase if you want immediate cross-device updates.
+    channel = sb.channel("library-"+userId)
+      .on("postgres_changes",{
+        event:"UPDATE",
+        schema:"public",
+        table:"libraries",
+        filter:"user_id=eq."+userId
+      },function(payload){
+        if(sessionGeneration !== generation || uid !== userId || !ready) return;
+        if(pendingCloudSave || Date.now()-lastLocalWrite < 1500) return;
+        var remote = payload.new && clean(payload.new.data);
+        if(remote){
+          lib = remote;
+          open = {};
+          $("code").value = JSON.stringify(lib);
+          render();
+          sync("Reading list updated from another device.");
+        }
+      })
+      .subscribe();
+  }
+
   function cloud(){
-    if(!configured())return;
-    sb=supabase.createClient(SB_URL,SB_KEY);
-    $("sin").classList.remove("hide");
-    sb.auth.onAuthStateChange(function(ev,sess){setTimeout(function(){attach(sess)},0)});
-    $("sin").onclick=function(){$("authp").classList.remove("hide");$("em").focus()};
-    $("ac").onclick=function(){$("authp").classList.add("hide");$("am").textContent=""};
-    var cred=function(){return {email:$("em").value.trim(),password:$("pw").value}};
-    $("li").onclick=async function(){
-      var r=await sb.auth.signInWithPassword(cred());
-      $("am").textContent=r.error?"Could not sign in: "+r.error.message:"";
+    var validURL = https://vsathacbokrpejpmqfkh.supabase.co(SB_URL);
+    var validKey = SB_KEY && SB_KEY.indexOf("sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE") !== 0;
+
+    if(!validURL || !validKey || !window.supabase){
+      sync("Setup required: add your Supabase URL and Publishable key in index.html.");
+      $("authTitle").textContent = "Connect your account";
+      authMessage("The site owner must add the Supabase Project URL and Publishable key before anyone can sign in.");
+      $("li").disabled = true;
+      $("su").disabled = true;
+      return;
+    }
+
+    sb = window.supabase.createClient(SB_URL,SB_KEY);
+
+    $("li").onclick = async function(){
+      var email = $("em").value.trim();
+      var password = $("pw").value;
+
+      if(!email || !password){
+        authMessage("Enter your email and password.");
+        return;
+      }
+
+      $("li").disabled = true;
+      authMessage("Signing in…");
+
+      try{
+        var result = await sb.auth.signInWithPassword({
+          email:email,
+          password:password
+        });
+        if(result.error) throw result.error;
+        authMessage("Sign-in successful. Loading your library…");
+      }catch(e){
+        authMessage("Sign-in failed: "+(e.message||"Check your email and password."));
+      }finally{
+        $("li").disabled = false;
+      }
     };
-    $("su").onclick=async function(){
-      var r=await sb.auth.signUp(cred());
-      $("am").textContent=r.error?"Could not create account: "+r.error.message:(r.data.session?"":"Check your email to confirm, then sign in.");
+
+    $("su").onclick = async function(){
+      var email = $("em").value.trim();
+      var password = $("pw").value;
+
+      if(!email || !password){
+        authMessage("Enter your email and password.");
+        return;
+      }
+      if(password.length < 6){
+        authMessage("Your password must contain at least 6 characters.");
+        return;
+      }
+
+      $("su").disabled = true;
+      authMessage("Creating your account…");
+
+      try{
+        var result = await sb.auth.signUp({
+          email:email,
+          password:password,
+          options:{
+            emailRedirectTo:window.location.origin+window.location.pathname
+          }
+        });
+
+        if(result.error) throw result.error;
+
+        if(result.data.session){
+          authMessage("Account created. Loading your library…");
+        }else{
+          authMessage("Account created. Check your email to confirm your address, then return here and sign in.");
+        }
+      }catch(e){
+        authMessage("Sign-up failed: "+(e.message||"Please try again."));
+      }finally{
+        $("su").disabled = false;
+      }
     };
-    $("sout").onclick=async function(){
-      var synced=!!ref;
-      if(synced&&!confirm("Sign out? Your books stay saved in your account. This device's copy will be cleared."))return;
-      await sb.auth.signOut();
-      if(synced){lib={b:[],n:1,u:0};open={};try{localStorage.removeItem(KEY)}catch(e){}$("code").value="";render()}
+
+    $("sout").onclick = async function(){
+      $("sout").disabled = true;
+
+      try{
+        // Finish the latest queued write before ending the session.
+        if(ready && pendingCloudSave){
+          clearTimeout(saveTimer);
+          var saved = await pushNow();
+          if(!saved){
+            var proceed = confirm(
+              "The latest changes could not be confirmed as saved to the cloud. Sign out anyway? Unsynced changes may be lost."
+            );
+            if(!proceed){
+              $("sout").disabled = false;
+              return;
+            }
+          }
+        }
+
+        resetUI();
+        sync("Signing out…");
+
+        var result = await sb.auth.signOut();
+        if(result.error) throw result.error;
+
+        authMessage("You have signed out. Sign in to use your tracker again.");
+        sync("Signed out. Your cloud library is preserved.");
+      }catch(e){
+        sync("Sign-out issue: "+(e.message||"Reload and try again."));
+      }finally{
+        $("sout").disabled = false;
+      }
     };
+
+    sb.auth.onAuthStateChange(function(event,session){
+      // Run follow-up database requests outside the auth callback.
+      setTimeout(function(){
+        loadAccount(session);
+      },0);
+    });
+
+    sb.auth.getSession().then(function(result){
+      if(result.error) throw result.error;
+      return loadAccount(result.data.session);
+    }).catch(function(e){
+      resetUI();
+      sync("Could not check sign-in status.");
+      authMessage("Authentication error: "+(e.message||"Reload and try again."));
+    });
   }
 
   function render(){
-    var list=$("list"),fin=0,rd=0,pg=0,groups=[],gm={};
+    var list = $("list");
+    var fin = 0, rd = 0, pg = 0, groups = [], gm = {};
+
     lib.b.forEach(function(b){
-      var g=b.g||"Other";if(!gm[g]){gm[g]=[];groups.push(g)}gm[g].push(b);
-      var st=status(b);if(st==="done")fin++;if(st==="reading")rd++;pg+=pages(b);
+      var g = b.g || "Other";
+      if(!gm[g]){
+        gm[g] = [];
+        groups.push(g);
+      }
+      gm[g].push(b);
+      var st = status(b);
+      if(st === "done") fin++;
+      if(st === "reading") rd++;
+      pg += pages(b);
     });
-    $("gl").innerHTML="";groups.forEach(function(g){if(g!=="Other"){var o=mk("option");o.value=g;$("gl").appendChild(o)}});
-    list.innerHTML="";
+
+    $("gl").innerHTML = "";
     groups.forEach(function(g){
-      var sec=mk("section"),h=mk("div","sh"),sm=mk("small"),shown=0,sf=0;
-      h.appendChild(mk("h2",null,g));h.appendChild(sm);sec.appendChild(h);
+      if(g !== "Other"){
+        var o = mk("option");
+        o.value = g;
+        $("gl").appendChild(o);
+      }
+    });
+
+    list.innerHTML = "";
+
+    groups.forEach(function(g){
+      var sec = mk("section");
+      var h = mk("div","sh");
+      var sm = mk("small");
+      var shown = 0, sf = 0;
+
+      h.appendChild(mk("h2",null,g));
+      h.appendChild(sm);
+      sec.appendChild(h);
+
       gm[g].forEach(function(b){
-        var st=status(b),p=pages(b),id=b.id;
-        if(st==="done")sf++;
-        if(filter!=="all"&&filter!==st)return;
+        var st = status(b), p = pages(b), id = b.id;
+        if(st === "done") sf++;
+        if(filter !== "all" && filter !== st) return;
         shown++;
-        var c=mk("div","card "+st),top=mk("div","top");
-        var box=mk("button","box","✓");box.type="button";box.setAttribute("role","checkbox");
-        box.setAttribute("aria-checked",st==="done");box.setAttribute("aria-label","Finished: "+b.ti);
-        box.onclick=function(){change(function(){if(st==="done")delete b.f;else{if(!b.s)b.s=today();b.f=today()}})};
+
+        var c = mk("div","card "+st);
+        var top = mk("div","top");
+        var box = mk("button","box","✓");
+        box.type = "button";
+        box.setAttribute("role","checkbox");
+        box.setAttribute("aria-checked",st==="done");
+        box.setAttribute("aria-label","Finished: "+b.ti);
+        box.onclick = function(){
+          change(function(){
+            if(st === "done") delete b.f;
+            else{
+              if(!b.s) b.s = today();
+              b.f = today();
+            }
+          });
+        };
         top.appendChild(box);
-        var tx=mk("div","txt");tx.appendChild(mk("span","t",b.ti));
-        if(b.au)tx.appendChild(mk("span","a",b.au));
-        var meta="";
-        if(st==="done")meta="Finished "+fmt(b.f)+(p?" · "+p+" pages":"");
-        else if(st==="reading")meta="Started "+fmt(b.s)+" · "+p+" pages · "+b.l.length+(b.l.length===1?" session":" sessions");
-        if(meta)tx.appendChild(mk("span","meta",meta));
-        top.appendChild(tx);c.appendChild(top);
 
-        if(b.t>0&&st!=="todo"){
-          var pct=Math.min(100,Math.round(p/b.t*100)),pb=mk("div","pb"),i=mk("i");
-          i.style.width=pct+"%";pb.appendChild(i);c.appendChild(pb);
+        var tx = mk("div","txt");
+        tx.appendChild(mk("span","t",b.ti));
+        if(b.au) tx.appendChild(mk("span","a",b.au));
+
+        var meta = "";
+        if(st === "done") meta = "Finished "+fmt(b.f)+(p?" · "+p+" pages":"");
+        else if(st === "reading") meta = "Started "+fmt(b.s)+" · "+p+" pages · "+b.l.length+(b.l.length===1?" session":" sessions");
+        if(meta) tx.appendChild(mk("span","meta",meta));
+
+        top.appendChild(tx);
+        c.appendChild(top);
+
+        if(b.t > 0 && st !== "todo"){
+          var pct = Math.min(100,Math.round(p/b.t*100));
+          var pb = mk("div","pb");
+          var i = mk("i");
+          i.style.width = pct+"%";
+          pb.appendChild(i);
+          c.appendChild(pb);
           c.appendChild(mk("div","note",p+" of "+b.t+" pages ("+pct+"%)"));
-          if(st==="reading"&&p>=b.t)c.appendChild(mk("div","hint","You've reached the last page. Tap the box to mark it finished."));
+          if(st==="reading" && p>=b.t){
+            c.appendChild(mk("div","hint","You've reached the last page. Tap the box to mark it finished."));
+          }
         }
 
-        var acts=mk("div","acts");
-        if(st==="todo")acts.appendChild(btn("Start reading","pri",function(){change(function(){b.s=today();open[id]="log"})}));
-        else{
-          if(st==="reading")acts.appendChild(btn("Log session","pri",function(){open[id]=open[id]==="log"?"":"log";render()}));
-          if(b.l.length)acts.appendChild(btn("History ("+b.l.length+")","",function(){open[id]=open[id]==="hist"?"":"hist";render()}));
-          if(st==="reading")acts.appendChild(btn("Stop tracking","",function(){if(confirm("Remove the start date and all sessions for this book?"))change(function(){delete b.s;b.l=[]})}));
+        var acts = mk("div","acts");
+        if(st === "todo"){
+          acts.appendChild(btn("Start reading","pri",function(){
+            change(function(){b.s=today();open[id]="log";});
+          }));
+        }else{
+          if(st === "reading"){
+            acts.appendChild(btn("Log session","pri",function(){
+              open[id] = open[id]==="log" ? "" : "log";
+              render();
+            }));
+          }
+          if(b.l.length){
+            acts.appendChild(btn("History ("+b.l.length+")","",function(){
+              open[id] = open[id]==="hist" ? "" : "hist";
+              render();
+            }));
+          }
+          if(st === "reading"){
+            acts.appendChild(btn("Stop tracking","",function(){
+              if(confirm("Remove the start date and all sessions for this book?")){
+                change(function(){delete b.s;b.l=[];});
+              }
+            }));
+          }
         }
-        acts.appendChild(btn("Edit","",function(){open[id]=open[id]==="edit"?"":"edit";render()}));
+
+        acts.appendChild(btn("Edit","",function(){
+          open[id] = open[id]==="edit" ? "" : "edit";
+          render();
+        }));
         c.appendChild(acts);
 
-        if(open[id]==="log"&&st==="reading"){
-          var pn=mk("div","panel"),pi=inp("number","pp"+id),ti=inp("number","pt"+id,b.t||"");
-          pi.placeholder="e.g. 25";
-          pn.appendChild(lab("Pages read this session","pp"+id));pn.appendChild(pi);
-          pn.appendChild(lab("Book length in pages (optional, shows a progress bar)","pt"+id));pn.appendChild(ti);
-          var row=mk("div","acts");
+        if(open[id] === "log" && st === "reading"){
+          var pn = mk("div","panel");
+          var pi = inp("number","pp"+id);
+          var ti = inp("number","pt"+id,b.t||"");
+          pi.placeholder = "e.g. 25";
+          pn.appendChild(lab("Pages read this session","pp"+id));
+          pn.appendChild(pi);
+          pn.appendChild(lab("Book length in pages (optional)","pt"+id));
+          pn.appendChild(ti);
+
+          var row = mk("div","acts");
           row.appendChild(btn("Save session","pri",function(){
-            var v=Math.round(+pi.value),t=Math.round(+ti.value);
-            if(!(v>0)){pi.focus();pi.style.borderColor="var(--gold)";return}
-            change(function(){b.l.push({d:today(),p:v});b.t=t>0?t:0;open[id]="hist"});
+            var v = Math.round(+pi.value);
+            var t = Math.round(+ti.value);
+            if(!(v>0)){
+              pi.focus();
+              pi.style.borderColor = "var(--gold)";
+              return;
+            }
+            change(function(){
+              b.l.push({d:today(),p:v});
+              b.t = t>0 ? t : 0;
+              open[id] = "hist";
+            });
           }));
-          row.appendChild(btn("Cancel","",function(){open[id]="";render()}));
-          pn.appendChild(row);c.appendChild(pn);setTimeout(function(){pi.focus()},0);
+          row.appendChild(btn("Cancel","",function(){open[id]="";render();}));
+          pn.appendChild(row);
+          c.appendChild(pn);
         }
-        if(open[id]==="hist"&&b.l.length){
-          var hp=mk("div","panel"),ul=mk("ul","hist"),run=0;
+
+        if(open[id] === "hist" && b.l.length){
+          var hp = mk("div","panel");
+          var ul = mk("ul","hist");
+          var run = 0;
           b.l.forEach(function(x,k){
-            run+=x.p;var li=mk("li");
+            run += x.p;
+            var li = mk("li");
             li.appendChild(mk("span","dt","Session "+(k+1)+" · "+fmt(x.d)));
-            li.appendChild(mk("span","pg","+"+x.p));li.appendChild(mk("span","rt","total "+run));
-            var del=btn("✕","",function(){if(confirm("Delete this session?"))change(function(){b.l.splice(k,1)})});
-            del.setAttribute("aria-label","Delete session "+(k+1));li.appendChild(del);ul.appendChild(li);
+            li.appendChild(mk("span","pg","+"+x.p));
+            li.appendChild(mk("span","rt","total "+run));
+            var del = btn("✕","",function(){
+              if(confirm("Delete this session?")){
+                change(function(){b.l.splice(k,1);});
+              }
+            });
+            del.setAttribute("aria-label","Delete session "+(k+1));
+            li.appendChild(del);
+            ul.appendChild(li);
           });
-          hp.appendChild(ul);c.appendChild(hp);
+          hp.appendChild(ul);
+          c.appendChild(hp);
         }
-        if(open[id]==="edit"){
-          var ep=mk("div","panel"),e1=inp("text","et"+id,b.ti),e2=inp("text","ea"+id,b.au,100),e3=inp("text","eg"+id,b.g,80),e4=inp("number","ep"+id,b.t||"");
+
+        if(open[id] === "edit"){
+          var ep = mk("div","panel");
+          var e1 = inp("text","et"+id,b.ti);
+          var e2 = inp("text","ea"+id,b.au,100);
+          var e3 = inp("text","eg"+id,b.g,80);
+          var e4 = inp("number","ep"+id,b.t||"");
           e3.setAttribute("list","gl");
-          ep.appendChild(lab("Title","et"+id));ep.appendChild(e1);ep.appendChild(lab("Author","ea"+id));ep.appendChild(e2);
-          ep.appendChild(lab("Group or series","eg"+id));ep.appendChild(e3);ep.appendChild(lab("Pages","ep"+id));ep.appendChild(e4);
-          var er=mk("div","acts");
+
+          ep.appendChild(lab("Title","et"+id));ep.appendChild(e1);
+          ep.appendChild(lab("Author","ea"+id));ep.appendChild(e2);
+          ep.appendChild(lab("Group or series","eg"+id));ep.appendChild(e3);
+          ep.appendChild(lab("Pages","ep"+id));ep.appendChild(e4);
+
+          var er = mk("div","acts");
           er.appendChild(btn("Save","pri",function(){
-            var t=e1.value.trim();if(!t){e1.focus();return}
-            change(function(){b.ti=t;b.au=e2.value.trim();b.g=e3.value.trim();b.t=Math.round(+e4.value)>0?Math.round(+e4.value):0;open[id]=""});
+            var t = e1.value.trim();
+            if(!t){e1.focus();return;}
+            change(function(){
+              b.ti=t;b.au=e2.value.trim();b.g=e3.value.trim();
+              b.t=Math.round(+e4.value)>0?Math.round(+e4.value):0;
+              open[id]="";
+            });
           }));
-          er.appendChild(btn("Cancel","",function(){open[id]="";render()}));
-          er.appendChild(btn("Remove book","",function(){if(confirm("Remove this book and its sessions?"))change(function(){lib.b=lib.b.filter(function(x){return x!==b})})}));
-          ep.appendChild(er);c.appendChild(ep);
+          er.appendChild(btn("Cancel","",function(){open[id]="";render();}));
+          er.appendChild(btn("Remove book","",function(){
+            if(confirm("Remove this book and its sessions?")){
+              change(function(){lib.b=lib.b.filter(function(x){return x!==b;});});
+            }
+          }));
+          ep.appendChild(er);
+          c.appendChild(ep);
         }
+
         sec.appendChild(c);
       });
-      sm.textContent=sf+" / "+gm[g].length;
-      if(shown)list.appendChild(sec);
+
+      sm.textContent = sf+" / "+gm[g].length;
+      if(shown) list.appendChild(sec);
     });
+
     if(!lib.b.length){
-      var em=mk("div","card");
+      var em = mk("div","card");
       em.appendChild(mk("p",null,"Your shelf is empty. Add your first book, or load a ready-made starter list."));
-      var ea=mk("div","acts");
+      var ea = mk("div","acts");
       ea.appendChild(btn("+ Add a book","pri",showAdd));
-      ea.appendChild(btn("Load starter list (31 books)","",function(){change(starter)}));
-      em.appendChild(ea);list.appendChild(em);
-    }else if(!list.childNodes.length)list.appendChild(mk("p","empty","Nothing here yet."));
-    $("cnt").textContent=fin;$("of").textContent="of "+lib.b.length+" finished";
-    $("stats").textContent=rd+" reading now · "+pg+" pages logged";
-    $("fill").style.width=(lib.b.length?fin/lib.b.length*100:0)+"%";
+      ea.appendChild(btn("Load starter list (31 books)","",function(){
+        change(starter);
+      }));
+      em.appendChild(ea);
+      list.appendChild(em);
+    }else if(!list.childNodes.length){
+      list.appendChild(mk("p","empty","Nothing here yet."));
+    }
+
+    $("cnt").textContent = fin;
+    $("of").textContent = "of "+lib.b.length+" finished";
+    $("stats").textContent = rd+" reading now · "+pg+" pages logged";
+    $("fill").style.width = (lib.b.length?fin/lib.b.length*100:0)+"%";
   }
 
-  function showAdd(){$("addp").classList.remove("hide");$("nt").focus();$("addp").scrollIntoView({block:"center"})}
-  $("addb").onclick=showAdd;
-  $("addc").onclick=function(){$("addp").classList.add("hide");$("addm").textContent=""};
-  $("adds").onclick=function(){
-    var t=$("nt").value.trim();
-    if(!t){$("addm").textContent="Please enter a title.";$("nt").focus();return}
-    change(function(){addBook(t,$("na").value.trim(),$("ng").value.trim(),Math.round(+$("np").value))});
-    ["nt","na","np"].forEach(function(i){$(i).value=""});
-    $("addm").textContent="Added. Add another, or tap Cancel to close.";$("nt").focus();
-  };
-  document.querySelectorAll("[data-f]").forEach(function(b){
-    b.onclick=function(){filter=b.getAttribute("data-f");document.querySelectorAll("[data-f]").forEach(function(x){x.setAttribute("aria-pressed",x===b)});render()};
-  });
-  $("exp").onclick=function(){
-    var v=JSON.stringify(lib);$("code").value=v;
-    var ok=function(){$("msg").textContent="Code copied. Keep it in your notes."};
-    var no=function(){$("code").select();$("msg").textContent="Select and copy the code above."};
-    try{navigator.clipboard.writeText(v).then(ok,no)}catch(e){no()}
-  };
-  $("imp").onclick=function(){
-    try{var c=clean(JSON.parse($("code").value.trim()));if(!c)throw 0;c.u=Date.now();lib=c;open={};save();render();$("msg").textContent="Restored."}
-    catch(e){$("msg").textContent="That code is not valid. Paste the full code and try again."}
-  };
-  $("rst").onclick=function(){
-    if(confirm("Remove all books and progress? This cannot be undone.")){lib={b:[],n:1,u:Date.now()};open={};save();render();$("msg").textContent="Everything cleared."}
+  function showAdd(){
+    if(!canEdit()) return;
+    $("addp").classList.remove("hide");
+    $("nt").focus();
+    $("addp").scrollIntoView({block:"center"});
+  }
+
+  $("addb").onclick = showAdd;
+  $("addc").onclick = function(){
+    $("addp").classList.add("hide");
+    $("addm").textContent = "";
   };
 
-  load();sync("Saved on this device");render();$("code").value=JSON.stringify(lib);cloud();
+  $("adds").onclick = function(){
+    if(!canEdit()) return;
+    var t = $("nt").value.trim();
+    if(!t){
+      $("addm").textContent = "Please enter a title.";
+      $("nt").focus();
+      return;
+    }
+
+    change(function(){
+      addBook(t,$("na").value.trim(),$("ng").value.trim(),Math.round(+$("np").value));
+    });
+
+    ["nt","na","ng","np"].forEach(function(id){$(id).value="";});
+    $("addm").textContent = "Added. Add another, or tap Cancel to close.";
+    $("nt").focus();
+  };
+
+  document.querySelectorAll("[data-f]").forEach(function(b){
+    b.onclick = function(){
+      if(!canEdit()) return;
+      filter = b.getAttribute("data-f");
+      document.querySelectorAll("[data-f]").forEach(function(x){
+        x.setAttribute("aria-pressed",x===b?"true":"false");
+      });
+      render();
+    };
+  });
+
+  $("exp").onclick = function(){
+    if(!canEdit()) return;
+    var v = JSON.stringify(lib);
+    $("code").value = v;
+    function fallback(){
+      $("code").select();
+      $("msg").textContent = "Select and copy the code above.";
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(v).then(function(){
+        $("msg").textContent = "Code copied. Keep it in your notes.";
+      }).catch(fallback);
+    }else fallback();
+  };
+
+  $("imp").onclick = function(){
+    if(!canEdit()) return;
+    try{
+      var c = clean(JSON.parse($("code").value.trim()));
+      if(!c) throw new Error("Invalid backup");
+      lib = c;
+      open = {};
+      queueSave();
+      render();
+      $("msg").textContent = "Restored. Saving to your account…";
+    }catch(e){
+      $("msg").textContent = "That code is not valid. Paste the full code and try again.";
+    }
+  };
+
+  $("rst").onclick = function(){
+    if(!canEdit()) return;
+    if(confirm("Remove all books and progress from your account? This cannot be undone.")){
+      change(function(){lib=emptyLib();open={};});
+      $("msg").textContent = "Your library was cleared and is being synced.";
+    }
+  };
+
+  // No guest mode and no loading data from localStorage.
+  resetUI();
+  cloud();
 })();
 </script>
 </body>
