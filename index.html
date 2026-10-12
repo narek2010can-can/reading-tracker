@@ -189,7 +189,7 @@ input[type=text],input[type=password]{width:100%;font:inherit;font-size:1rem;pad
   function change(fn){fn();lib.u=Date.now();save();render()}
 
   // ---- Supabase account sync (fill these two in; see setup.sql) ----
-  var SB_URL="PASTE_YOUR_SUPABASE_URL", SB_KEY="PASTE_YOUR_SUPABASE_ANON_KEY", sb=null, uid=null;
+  var SB_URL="https://vsathacbokrpejpmqfkh.supabase.co", SB_KEY="sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE", sb=null, uid=null;
   function configured(){return /^https:\/\/.+\.supabase\.co/.test(SB_URL)&&SB_KEY.indexOf("PASTE")!==0&&!!window.supabase}
   function authUI(on,email){
     $("who").textContent=on?email:"";
