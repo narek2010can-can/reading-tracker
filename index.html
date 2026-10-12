@@ -507,10 +507,16 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       .subscribe();
   }
 
+var validURL = "https://vsathacbokrpejpmqfkh.supabase.co";
+var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE";
+  
   function cloud(){
-    var validURL = "https://vsathacbokrpejpmqfkh.supabase.co";
-    var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE"
-
+    
+    var validURL = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SB_URL);
+  var validKey = typeof SB_KEY === "string" &&
+    SB_KEY.length > 20 &&
+    SB_KEY.startsWith("sb_publishable_");
+    
     if(!validURL || !validKey || !window.supabase){
       sync("Setup required: check your Supabase URL, publishable key, and connection.");
       $("authTitle").textContent = "Connect your account";
