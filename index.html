@@ -143,9 +143,9 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
 (function(){
   "use strict";
 
-  // IMPORTANT: Replace both placeholders with your Supabase project values.
-  var SB_URL = "PASTE_YOUR_SUPABASE_URL";
-  var SB_KEY = "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY";
+  // Your Supabase project settings.
+  var SB_URL = "https://vsathacbokrpejpmqfkh.supabase.co";
+  var SB_KEY = "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE";
 
   var sb = null;
   var uid = null;
@@ -460,7 +460,6 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       $("authTitle").textContent = "Sign in or create an account";
 
       if(!remote){
-        // New accounts get an empty cloud library.
         lib.u = Date.now();
         queueSave();
       }else{
@@ -487,8 +486,6 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       channel = null;
     }
 
-    // Realtime changes can update other open devices. Enable Realtime for
-    // public.libraries in Supabase if you want immediate cross-device updates.
     channel = sb.channel("library-"+userId)
       .on("postgres_changes",{
         event:"UPDATE",
@@ -511,14 +508,13 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
   }
 
   function cloud(){
-    var validURL = SB_URL.startsWith("https://vsathacbokrpejpmqfkh.supabase.co") &&
-    SB_URL.includes(".supabase.co");    
-    var validKey = SB_KEY && SB_KEY.indexOf("sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE") !== 0;
+    var validURL = "https://vsathacbokrpejpmqfkh.supabase.co";
+    var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE"
 
     if(!validURL || !validKey || !window.supabase){
-      sync("Setup required: add your Supabase URL and Publishable key in index.html.");
+      sync("Setup required: check your Supabase URL, publishable key, and connection.");
       $("authTitle").textContent = "Connect your account";
-      authMessage("The site owner must add the Supabase Project URL and Publishable key before anyone can sign in.");
+      authMessage("Check the Supabase configuration and make sure the Supabase JavaScript library loads.");
       $("li").disabled = true;
       $("su").disabled = true;
       return;
@@ -595,7 +591,6 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       $("sout").disabled = true;
 
       try{
-        // Finish the latest queued write before ending the session.
         if(ready && pendingCloudSave){
           clearTimeout(saveTimer);
           var saved = await pushNow();
@@ -610,12 +605,10 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
           }
         }
 
-        resetUI();
-        sync("Signing out…");
-
         var result = await sb.auth.signOut();
         if(result.error) throw result.error;
 
+        resetUI();
         authMessage("You have signed out. Sign in to use your tracker again.");
         sync("Signed out. Your cloud library is preserved.");
       }catch(e){
@@ -626,7 +619,6 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
     };
 
     sb.auth.onAuthStateChange(function(event,session){
-      // Run follow-up database requests outside the auth callback.
       setTimeout(function(){
         loadAccount(session);
       },0);
@@ -955,7 +947,6 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
     }
   };
 
-  // No guest mode and no loading data from localStorage.
   resetUI();
   cloud();
 })();
