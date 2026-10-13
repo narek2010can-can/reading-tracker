@@ -44,7 +44,7 @@ section{margin-top:22px}
 .pb i{display:block;height:100%;background:var(--acc)}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .panel{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
-.panel label,#addp label,#authp label{display:block;font-size:.85rem;color:var(--mute);margin:8px 0 4px}
+.panel label,#addp label,#authp label,#adminShelfPanel label{display:block;font-size:.85rem;color:var(--mute);margin:8px 0 4px}
 input[type=number]{width:100%;font:inherit;font-size:1.1rem;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 input[type=text],input[type=email],input[type=password]{width:100%;font:inherit;font-size:1rem;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
 .hist{list-style:none;margin:0;padding:0}
@@ -56,12 +56,13 @@ input[type=text],input[type=email],input[type=password]{width:100%;font:inherit;
 .hist button{padding:2px 10px;min-height:32px}
 .hint{color:var(--gold);font-size:.85rem;margin-top:8px}
 .empty,.note,.sync,.msg{color:var(--mute);font-size:.85rem}
-.hide{display:none!important}
+.hide,[hidden]{display:none!important}
 details{margin-top:28px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 summary{cursor:pointer}
 textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
 .msg{min-height:1.2em;overflow-wrap:anywhere}
 .sync{margin:8px 0 14px;overflow-wrap:anywhere}
+.adminShelf{overflow-wrap:anywhere;white-space:pre-wrap;max-width:100%}
 </style>
 </head>
 <body>
@@ -77,11 +78,21 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
 
   <div class="card" id="authp">
     <h2 id="authTitle">Sign in or create an account</h2>
-    <p class="note">You must sign in to use your Reading Tracker. Your reading list is saved to your account.</p>
+    <p class="note">You must sign in to use your Reading Tracker. Your reading list is saved to your account. Enter your age each time you sign in or create an account.</p>
+
+    <label for="age">Your age</label>
+    <input type="number" id="age" min="1" max="120" step="1" inputmode="numeric" required autocomplete="off" placeholder="Enter your age">
+
+    <div id="guardianFields" hidden>
+      <label for="guardianEmail">Parent/guardian email (required under 13)</label>
+      <input type="email" id="guardianEmail" maxlength="200" autocomplete="email" placeholder="Parent or guardian email">
+      <p class="note">Entering an email does not itself confirm guardian consent. Accounts under 13 remain restricted until consent is verified.</p>
+    </div>
+
     <label for="em">Email</label>
-    <input type="email" id="em" autocomplete="email" maxlength="200">
+    <input type="email" id="em" autocomplete="email" maxlength="200" required>
     <label for="pw">Password (6+ characters)</label>
-    <input type="password" id="pw" autocomplete="current-password" minlength="6" maxlength="100">
+    <input type="password" id="pw" autocomplete="current-password" minlength="6" maxlength="100" required>
     <div class="acts">
       <button class="pri" id="li" type="button">Sign in</button>
       <button id="su" type="button">Create account</button>
@@ -124,6 +135,14 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
 
     <main id="list"></main>
 
+    <section class="card" id="adminShelfPanel">
+      <h2>Admin: User Shelves</h2>
+      <p class="note">This feature is restricted by the server to accounts listed in the admin table.</p>
+      <button class="pri" id="loadAdminShelves" type="button">Load users' shelves</button>
+      <div class="msg" id="adminShelfStatus" role="status" aria-live="polite"></div>
+      <div id="adminShelfResults"></div>
+    </section>
+
     <details>
       <summary>Backup and restore</summary>
       <p class="note">Your library is saved to your signed-in account. You can also copy a backup code.</p>
@@ -143,7 +162,6 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
 (function(){
   "use strict";
 
-  // Your Supabase project settings.
   var SB_URL = "https://vsathacbokrpejpmqfkh.supabase.co";
   var SB_KEY = "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE";
 
@@ -151,6 +169,7 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
   var uid = null;
   var ready = false;
   var loading = false;
+  var authFlowInProgress = false;
   var lib = {b:[], n:1, u:0};
   var filter = "all";
   var open = {};
@@ -350,6 +369,8 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
     $("msg").textContent = "";
     $("addm").textContent = "";
     $("addp").classList.add("hide");
+    $("adminShelfStatus").textContent = "";
+    $("adminShelfResults").replaceChildren();
     ["nt","na","ng","np"].forEach(function(id){ $(id).value = ""; });
 
     document.querySelectorAll("[data-f]").forEach(function(b){
@@ -362,6 +383,47 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
 
   function canEdit(){
     return !!(uid && ready && !loading);
+  }
+
+  function updateGuardianFields(){
+    var raw = $("age").value.trim();
+    var age = Number(raw);
+    var needsGuardian = raw !== "" &&
+      Number.isInteger(age) && age >= 1 && age < 13;
+
+    $("guardianFields").hidden = !needsGuardian;
+    $("guardianEmail").required = needsGuardian;
+
+    if(!needsGuardian) $("guardianEmail").value = "";
+  }
+
+  function collectEntryDetails(){
+    var rawAge = $("age").value.trim();
+    var age = Number(rawAge);
+    var guardianEmail = $("guardianEmail").value.trim();
+
+    if(rawAge === "" || !Number.isInteger(age) || age < 1 || age > 120){
+      throw new Error("Please enter a valid age between 1 and 120.");
+    }
+
+    if(age < 13 && !guardianEmail){
+      throw new Error("Please enter a parent or guardian email because you entered an age under 13.");
+    }
+
+    if(age < 13 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardianEmail)){
+      throw new Error("Please enter a valid parent or guardian email.");
+    }
+
+    return {age:age, guardianEmail:age < 13 ? guardianEmail : null};
+  }
+
+  async function saveAgeForSignedInUser(details){
+    var result = await sb.rpc("set_my_reading_tracker_age",{
+      p_age:details.age,
+      p_guardian_email:details.guardianEmail
+    });
+    if(result.error) throw result.error;
+    return result.data;
   }
 
   async function pushNow(){
@@ -381,7 +443,6 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       },{onConflict:"user_id"});
 
       if(result.error) throw result.error;
-
       if(uid !== targetUid || generation !== myGeneration) return false;
 
       pendingCloudSave = false;
@@ -474,7 +535,7 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       showApp(false);
       sync("Could not load your library.");
       authMessage(
-        "We couldn't load your account data. Check your connection and the Supabase libraries table and policies. Details: "+
+        "We couldn't load your account data. Your profile may not be eligible for library access, or the database configuration may be incomplete. Details: "+
         (e.message||"Unknown error")
       );
     }
@@ -507,16 +568,12 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       .subscribe();
   }
 
-var validURL = "https://vsathacbokrpejpmqfkh.supabase.co";
-var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE";
-  
   function cloud(){
-    
     var validURL = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(SB_URL);
-  var validKey = typeof SB_KEY === "string" &&
-    SB_KEY.length > 20 &&
-    SB_KEY.startsWith("sb_publishable_");
-    
+    var validKey = typeof SB_KEY === "string" &&
+      SB_KEY.length > 20 &&
+      SB_KEY.startsWith("sb_publishable_");
+
     if(!validURL || !validKey || !window.supabase){
       sync("Setup required: check your Supabase URL, publishable key, and connection.");
       $("authTitle").textContent = "Connect your account";
@@ -528,9 +585,19 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
 
     sb = window.supabase.createClient(SB_URL,SB_KEY);
 
+    $("age").addEventListener("input",updateGuardianFields);
+
     $("li").onclick = async function(){
       var email = $("em").value.trim();
       var password = $("pw").value;
+      var details;
+
+      try{
+        details = collectEntryDetails();
+      }catch(e){
+        authMessage(e.message);
+        return;
+      }
 
       if(!email || !password){
         authMessage("Enter your email and password.");
@@ -538,6 +605,8 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
       }
 
       $("li").disabled = true;
+      $("su").disabled = true;
+      authFlowInProgress = true;
       authMessage("Signing in…");
 
       try{
@@ -546,17 +615,41 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
           password:password
         });
         if(result.error) throw result.error;
-        authMessage("Sign-in successful. Loading your library…");
+
+        var ageStatus = await saveAgeForSignedInUser(details);
+
+        if(ageStatus === "pending_guardian"){
+          await sb.auth.signOut();
+          authMessage("Your account is waiting for parent/guardian consent. Library access remains restricted until consent is verified.");
+          sync("Guardian consent is required before library access.");
+        }else if(ageStatus === "suspended" || ageStatus === "banned"){
+          await sb.auth.signOut();
+          authMessage("This account is restricted. Please contact the site administrator.");
+          sync("Account access is restricted.");
+        }else{
+          authMessage("Sign-in successful. Loading your library…");
+          await loadAccount(result.data.session);
+        }
       }catch(e){
-        authMessage("Sign-in failed: "+(e.message||"Check your email and password."));
+        authMessage("Sign-in failed: "+(e.message||"Check your email, password, age, and database setup."));
       }finally{
+        authFlowInProgress = false;
         $("li").disabled = false;
+        $("su").disabled = false;
       }
     };
 
     $("su").onclick = async function(){
       var email = $("em").value.trim();
       var password = $("pw").value;
+      var details;
+
+      try{
+        details = collectEntryDetails();
+      }catch(e){
+        authMessage(e.message);
+        return;
+      }
 
       if(!email || !password){
         authMessage("Enter your email and password.");
@@ -568,6 +661,8 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
       }
 
       $("su").disabled = true;
+      $("li").disabled = true;
+      authFlowInProgress = true;
       authMessage("Creating your account…");
 
       try{
@@ -575,21 +670,39 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
           email:email,
           password:password,
           options:{
-            emailRedirectTo:window.location.origin+window.location.pathname
+            emailRedirectTo:window.location.origin+window.location.pathname,
+            data:{
+              age:details.age,
+              guardian_email:details.guardianEmail
+            }
           }
         });
 
         if(result.error) throw result.error;
 
         if(result.data.session){
-          authMessage("Account created. Loading your library…");
+          var ageStatus = await saveAgeForSignedInUser(details);
+
+          if(ageStatus === "pending_guardian"){
+            await sb.auth.signOut();
+            authMessage("Account created, but library access is pending guardian consent.");
+            sync("Guardian consent is required before library access.");
+          }else if(ageStatus === "suspended" || ageStatus === "banned"){
+            await sb.auth.signOut();
+            authMessage("This account is restricted. Please contact the site administrator.");
+          }else{
+            authMessage("Account created. Loading your library…");
+            await loadAccount(result.data.session);
+          }
         }else{
-          authMessage("Account created. Check your email to confirm your address, then return here and sign in.");
+          authMessage("Account created. Check your email to confirm your address, then return here and sign in with your age.");
         }
       }catch(e){
         authMessage("Sign-up failed: "+(e.message||"Please try again."));
       }finally{
+        authFlowInProgress = false;
         $("su").disabled = false;
+        $("li").disabled = false;
       }
     };
 
@@ -625,6 +738,7 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
     };
 
     sb.auth.onAuthStateChange(function(event,session){
+      if(authFlowInProgress) return;
       setTimeout(function(){
         loadAccount(session);
       },0);
@@ -639,6 +753,57 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
       authMessage("Authentication error: "+(e.message||"Reload and try again."));
     });
   }
+
+  async function loadAdminShelves(){
+    var button = $("loadAdminShelves");
+    button.disabled = true;
+    $("adminShelfStatus").textContent = "Checking administrator access…";
+    $("adminShelfResults").replaceChildren();
+
+    try{
+      var result = await sb.functions.invoke("admin-shelves");
+      if(result.error) throw result.error;
+
+      if(!result.data || !Array.isArray(result.data.users)){
+        throw new Error("Unexpected response from the admin function.");
+      }
+
+      var users = result.data.users;
+      $("adminShelfStatus").textContent = "Loaded "+users.length+" user profile(s).";
+
+      if(!users.length){
+        $("adminShelfResults").textContent = "No user profiles found.";
+        return;
+      }
+
+      users.forEach(function(user){
+        var card = mk("div","card");
+        var heading = mk("h3",null,"User ID: "+user.user_id);
+        var details = mk("p","note",
+          "Age: "+(user.age==null?"Not provided":user.age)+
+          " · Access: "+(user.access_status||"unknown")+
+          " · Shelf updated: "+(user.shelf_updated_at||"No shelf saved")
+        );
+        var shelf = mk("pre","adminShelf",user.shelf
+          ? JSON.stringify(user.shelf,null,2)
+          : "This user has no saved shelf."
+        );
+
+        card.appendChild(heading);
+        card.appendChild(details);
+        card.appendChild(shelf);
+        $("adminShelfResults").appendChild(card);
+      });
+    }catch(e){
+      $("adminShelfStatus").textContent =
+        "Could not load shelves. Make sure the admin-shelves Edge Function is deployed and your account is listed in app_admins. Details: "+
+        (e.message||"Unknown error");
+    }finally{
+      button.disabled = false;
+    }
+  }
+
+  $("loadAdminShelves").addEventListener("click",loadAdminShelves);
 
   function render(){
     var list = $("list");
@@ -657,7 +822,7 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
       pg += pages(b);
     });
 
-    $("gl").innerHTML = "";
+    $("gl").replaceChildren();
     groups.forEach(function(g){
       if(g !== "Other"){
         var o = mk("option");
@@ -666,7 +831,7 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
       }
     });
 
-    list.innerHTML = "";
+    list.replaceChildren();
 
     groups.forEach(function(g){
       var sec = mk("section");
@@ -953,6 +1118,7 @@ var validKey = typeof SB_KEY === "sb_publishable_Lqesi9KT6272zHdIEK6n8w_rnKJNcSE
     }
   };
 
+  updateGuardianFields();
   resetUI();
   cloud();
 })();
