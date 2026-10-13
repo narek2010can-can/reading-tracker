@@ -63,12 +63,166 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
 .msg{min-height:1.2em;overflow-wrap:anywhere}
 .sync{margin:8px 0 14px;overflow-wrap:anywhere}
 .adminShelf{overflow-wrap:anywhere;white-space:pre-wrap;max-width:100%}
+
+/* ── Editorial redesign ───────────────────────────────────────────── */
+:root{
+  color-scheme:light;
+  --bg:#f4f2eb;--card:#fffefa;--ink:#202b25;--mute:#718078;
+  --line:#e1e5dc;--acc:#245c48;--accsoft:#e5eee7;--gold:#a36f2b;
+  --done:#8a9890;--on:#fffefa;--shadow:0 10px 32px rgba(31,54,42,.055);
+  --shadow-hover:0 16px 38px rgba(31,54,42,.105);--radius:18px;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;--bg:#101714;--card:#19231e;--ink:#edf3ee;--mute:#a0b0a5;
+  --line:#2c3c32;--acc:#8bd0ad;--accsoft:#263d30;--gold:#e1bb78;
+  --done:#7e9085;--on:#122018;--shadow:0 10px 32px rgba(0,0,0,.14);
+  --shadow-hover:0 16px 38px rgba(0,0,0,.24);
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){color-scheme:dark;--bg:#101714;--card:#19231e;--ink:#edf3ee;--mute:#a0b0a5;--line:#2c3c32;--acc:#8bd0ad;--accsoft:#263d30;--gold:#e1bb78;--done:#7e9085;--on:#122018;--shadow:0 10px 32px rgba(0,0,0,.14);--shadow-hover:0 16px 38px rgba(0,0,0,.24)}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{min-height:100vh;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;transition:background .25s,color .25s}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 8% 0%,rgba(166,193,158,.17),transparent 34%),radial-gradient(ellipse at 100% 18%,rgba(213,184,132,.12),transparent 30%)}
+.wrap{max-width:1120px;margin:0 auto;padding:32px 28px 80px}
+.site-header{display:flex;align-items:center;gap:16px;position:relative;margin:0 0 24px;padding:6px 0 22px;border-bottom:1px solid var(--line)}
+.brand-mark{width:54px;height:54px;display:grid;place-items:center;flex:none;border-radius:17px;background:var(--acc);color:var(--on);font-family:Georgia,serif;font-size:1.75rem;box-shadow:0 8px 18px rgba(36,92,72,.18)}
+.brand-mark span{color:#d9c08d}
+.brand-copy{min-width:0;flex:1}
+.eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.17em;color:var(--acc);margin-bottom:4px}
+h1{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:500;font-size:clamp(2rem,4vw,3rem);letter-spacing:-.045em;line-height:1.06;margin:0 0 7px}
+.sub{color:var(--mute);margin:0;font-size:.96rem}
+.theme-toggle{display:flex;align-items:center;gap:8px;border-radius:12px;padding:10px 13px;white-space:nowrap;font-size:.8rem;font-weight:700;background:var(--card)}
+.sync{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 22px;padding:10px 13px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--card) 78%,transparent);font-size:.8rem}
+#sync{font-weight:650}
+#who{color:var(--acc);font-weight:700}
+#sout{margin-left:auto}
+.card,.hero,details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;transition:border-color .2s,box-shadow .2s,transform .2s,background .25s}
+#authp{max-width:560px;margin:0 auto;padding:28px}
+#authp h2{font-family:Georgia,serif;font-size:1.55rem;font-weight:500;letter-spacing:-.02em;margin:0 0 6px}
+.note{color:var(--mute);font-size:.84rem}
+#authp .note{line-height:1.65}
+label{font-weight:650}
+input[type=number],input[type=text],input[type=email],input[type=password],input[type=search],select,textarea{width:100%;font:inherit;font-size:.94rem;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);transition:border-color .18s,box-shadow .18s,background .2s}
+input::placeholder{color:var(--mute);opacity:.75}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 13%,transparent)}
+button{font-family:inherit;font-size:.84rem;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:11px;cursor:pointer;min-height:40px;transition:transform .16s,background .18s,border-color .18s,box-shadow .18s,color .18s}
+button:hover:not(:disabled){border-color:color-mix(in srgb,var(--acc) 55%,var(--line));transform:translateY(-1px);box-shadow:0 5px 14px rgba(25,55,39,.07)}
+button:active:not(:disabled){transform:translateY(0) scale(.985)}
+button.pri,button[aria-pressed="true"]{background:var(--acc);color:var(--on);border-color:var(--acc)}
+button.pri:hover:not(:disabled),button[aria-pressed="true"]:hover:not(:disabled){filter:brightness(1.06)}
+button:disabled{opacity:.5;cursor:wait;transform:none}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.hero{position:relative;overflow:hidden;top:auto;display:grid;grid-template-columns:minmax(170px,.85fr) 1.6fr;column-gap:28px;align-items:center;padding:25px 28px;margin-bottom:24px;border-radius:22px}
+.hero:after{content:"";position:absolute;width:230px;height:230px;right:-90px;top:-130px;border-radius:50%;border:1px solid color-mix(in srgb,var(--acc) 18%,transparent);box-shadow:0 0 0 22px color-mix(in srgb,var(--acc) 4%,transparent),0 0 0 44px color-mix(in srgb,var(--acc) 3%,transparent);pointer-events:none}
+.big{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.big b{font-family:Georgia,serif;font-size:clamp(2.8rem,5vw,4.2rem);line-height:1;color:var(--acc);font-weight:500;letter-spacing:-.06em}
+.big span{color:var(--mute);font-size:.88rem}
+.stats{font-size:.9rem;color:var(--mute);margin-top:7px}
+.bar{height:9px;background:var(--accsoft);border-radius:99px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),color-mix(in srgb,var(--acc) 55%,#d3bd86));border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.library-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 22px}
+.tools{display:flex;gap:7px;margin:0;flex-wrap:wrap}
+.filter-tools button{font-size:.79rem;padding:8px 12px;min-height:37px}
+.browse-tools{display:flex;align-items:center;gap:10px;flex:1;justify-content:flex-end}
+.search-wrap{display:flex;align-items:center;gap:8px;width:min(100%,330px);padding:0 10px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--mute)}
+.search-wrap>span{font-size:1.35rem;line-height:1}
+.search-wrap input{border:0;box-shadow:none!important;background:transparent;padding:10px 0;min-width:0}
+.search-wrap kbd{font:600 .7rem ui-monospace,monospace;border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
+.sort-wrap{display:flex;align-items:center;gap:7px;color:var(--mute);font-size:.78rem}
+.sort-wrap select{width:auto;max-width:165px;padding:10px 28px 10px 10px;background-color:var(--card);font-size:.8rem}
+.action-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:8px 2px 6px}
+.section-title{font-family:Georgia,serif;font-weight:500;font-size:1.65rem;letter-spacing:-.035em;margin:0}
+.section-caption{font-size:.84rem;color:var(--mute);margin:2px 0 0}
+.add-main{padding:11px 17px;font-size:.86rem;white-space:nowrap}
+#addp{margin:12px 0 24px;box-shadow:var(--shadow)}
+#addp label,#authp label,#adminShelfPanel label,.panel label{display:block;font-size:.8rem;color:var(--mute);margin:12px 0 6px}
+#list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+#list>section{margin:0;min-width:0;padding:16px;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--card) 62%,transparent)}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 2px 12px}
+.sh h2{font-family:Georgia,serif;font-weight:500;font-size:1.15rem;letter-spacing:-.02em;margin:0;overflow-wrap:anywhere}
+.sh small{font-size:.73rem;color:var(--mute);background:var(--accsoft);padding:3px 8px;border-radius:99px;white-space:nowrap}
+#list .card{padding:14px;margin-bottom:9px;border-radius:14px;box-shadow:none;background:var(--card)}
+#list .card:last-child{margin-bottom:0}
+#list .card:hover{border-color:color-mix(in srgb,var(--acc) 38%,var(--line));box-shadow:var(--shadow);transform:translateY(-1px)}
+#list .card.reading{border:1px solid color-mix(in srgb,var(--acc) 65%,var(--line));background:color-mix(in srgb,var(--accsoft) 30%,var(--card))}
+.top{gap:11px;align-items:flex-start}
+.box{width:32px;height:32px;min-height:32px;border:1.5px solid var(--acc);border-radius:10px;flex:none}
+.box[aria-checked=true]{box-shadow:inset 0 0 0 2px var(--card)}
+.t{font-size:.96rem;font-weight:720;line-height:1.35;overflow-wrap:anywhere}
+.a{font-size:.8rem;margin-top:3px}
+.meta{font-size:.75rem;font-weight:650;margin-top:6px}
+.pb{height:6px;margin:12px 0 6px}
+#list .note{font-size:.76rem}
+.acts{gap:7px;margin-top:12px}
+.acts button{font-size:.77rem;min-height:35px;padding:7px 10px}
+.panel{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.hist li{gap:8px;padding:9px 0;font-size:.8rem}
+.hist .rt{font-size:.7rem}
+.hist button{min-height:28px}
+.empty{padding:24px;text-align:center}
+details{margin-top:28px;padding:18px 20px}
+summary{font-weight:750;font-size:.9rem}
+textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem;min-height:105px;resize:vertical}
+.msg{font-size:.82rem;margin-top:8px;line-height:1.5}
+#adminShelfPanel{margin-top:30px}
+#adminShelfPanel h2{font-family:Georgia,serif;font-weight:500;font-size:1.4rem;margin:0}
+#adminShelfPanel>.pri{margin:6px 0}
+#adminShelfResults{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+#adminShelfResults>.card{min-width:0;margin:0;padding:16px}
+#adminShelfResults h3{font-size:.82rem;overflow-wrap:anywhere}
+.adminShelf{font: .73rem/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto;padding:12px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+#app{animation:fade-up .35s ease both}
+@keyframes fade-up{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media(max-width:760px){
+ .wrap{padding:22px 17px 56px}
+ #list{grid-template-columns:1fr}
+ .hero{grid-template-columns:1fr;gap:12px;padding:22px}
+ .browse-tools{justify-content:stretch;flex-wrap:wrap}
+ .search-wrap{flex:1;width:auto;min-width:180px}
+ .sort-wrap{flex:1}
+ .sort-wrap select{flex:1;max-width:none}
+ #adminShelfResults{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+ .wrap{padding:16px 12px 42px}
+ .site-header{gap:11px;padding-bottom:17px}
+ .brand-mark{width:43px;height:43px;border-radius:13px;font-size:1.4rem}
+ .eyebrow{font-size:.58rem}
+ h1{font-size:1.9rem}
+ .sub{font-size:.83rem}
+ .theme-toggle{width:42px;height:42px;justify-content:center;padding:0;font-size:1rem}
+ .theme-toggle span{display:none}
+ .sync{align-items:flex-start;font-size:.74rem}
+ #sout{margin-left:0}
+ #authp{padding:20px 16px}
+ .card,.hero,details{padding:15px}
+ .library-toolbar{gap:11px}
+ .filter-tools{width:100%}
+ .filter-tools button{flex:1;padding:7px 5px;font-size:.72rem}
+ .browse-tools{width:100%}
+ .sort-wrap{min-width:0;font-size:.73rem}
+ .sort-wrap select{min-width:0;padding-left:7px}
+ .action-row{align-items:flex-start}
+ .section-title{font-size:1.45rem}
+ .add-main{padding:9px 12px}
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>My Reading Tracker</h1>
-  <p class="sub">Add your books, start them, log pages after each session, check them off when done.</p>
+  <header class="site-header">
+    <div class="brand-mark" aria-hidden="true">R<span>·</span></div>
+    <div class="brand-copy">
+      <div class="eyebrow">YOUR PERSONAL LIBRARY</div>
+      <h1>My Reading Tracker</h1>
+      <p class="sub">A thoughtful space for every page, idea, and finished chapter.</p>
+    </div>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">☾ <span>Appearance</span></button>
+  </header>
 
   <div class="sync">
     <span id="sync" role="status">Checking sign-in…</span>
@@ -107,14 +261,26 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       <div class="bar"><i id="fill"></i></div>
     </div>
 
-    <div class="tools" role="group" aria-label="Filter">
-      <button data-f="all" aria-pressed="true">All</button>
-      <button data-f="todo" aria-pressed="false">Not started</button>
-      <button data-f="reading" aria-pressed="false">Reading</button>
-      <button data-f="done" aria-pressed="false">Finished</button>
+    <div class="library-toolbar">
+      <div class="tools filter-tools" role="group" aria-label="Filter books">
+        <button data-f="all" aria-pressed="true">All books</button>
+        <button data-f="todo" aria-pressed="false">Not started</button>
+        <button data-f="reading" aria-pressed="false">Reading</button>
+        <button data-f="done" aria-pressed="false">Finished</button>
+      </div>
+      <div class="browse-tools">
+        <label class="search-wrap" for="bookSearch"><span aria-hidden="true">⌕</span><input id="bookSearch" type="search" placeholder="Search title, author, series…" autocomplete="off" aria-label="Search books"><kbd>/</kbd></label>
+        <label class="sort-wrap" for="bookSort"><span>Sort</span><select id="bookSort" aria-label="Sort books">
+          <option value="group">Shelf order</option>
+          <option value="title">Title A–Z</option>
+          <option value="author">Author A–Z</option>
+          <option value="progress">Most pages read</option>
+          <option value="recent">Recently started</option>
+        </select></label>
+      </div>
     </div>
 
-    <div class="tools"><button class="pri" id="addb" type="button">+ Add a book</button></div>
+    <div class="action-row"><div><h2 class="section-title">Your shelves</h2><p class="section-caption" id="shelfCaption">Your reading, all in one place.</p></div><button class="pri add-main" id="addb" type="button"><span aria-hidden="true">＋</span> Add a book</button></div>
 
     <div class="card hide" id="addp">
       <label for="nt">Title</label>
@@ -172,6 +338,8 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
   var authFlowInProgress = false;
   var lib = {b:[], n:1, u:0};
   var filter = "all";
+  var searchTerm = "";
+  var sortMode = "group";
   var open = {};
   var saveTimer = null;
   var generation = 0;
@@ -778,14 +946,16 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
 
       users.forEach(function(user){
         var card = mk("div","card");
-        var heading = mk("h3",null,"User ID: "+user.user_id);
+        var heading = mk("h3",null,user.email || ("User ID: "+user.user_id));
         var details = mk("p","note",
-          "Age: "+(user.age==null?"Not provided":user.age)+
+          "User ID: "+user.user_id+
+          " · Age: "+(user.age==null?"Not provided":user.age)+
           " · Access: "+(user.access_status||"unknown")+
-          " · Shelf updated: "+(user.shelf_updated_at||"No shelf saved")
+          " · Shelf updated: "+(user.shelf_updated_at||user.updated_at||"No shelf saved")
         );
-        var shelf = mk("pre","adminShelf",user.shelf
-          ? JSON.stringify(user.shelf,null,2)
+        var shelfData = user.shelf || user.data || user.library;
+        var shelf = mk("pre","adminShelf",shelfData
+          ? JSON.stringify(shelfData,null,2)
           : "This user has no saved shelf."
         );
 
@@ -843,10 +1013,17 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       h.appendChild(sm);
       sec.appendChild(h);
 
-      gm[g].forEach(function(b){
+      var shelfBooks = gm[g].slice();
+      if(sortMode === "title") shelfBooks.sort(function(a,b){return a.ti.localeCompare(b.ti);});
+      if(sortMode === "author") shelfBooks.sort(function(a,b){return (a.au||"").localeCompare(b.au||"") || a.ti.localeCompare(b.ti);});
+      if(sortMode === "progress") shelfBooks.sort(function(a,b){return pages(b)-pages(a) || a.ti.localeCompare(b.ti);});
+      if(sortMode === "recent") shelfBooks.sort(function(a,b){return String(b.s||"").localeCompare(String(a.s||"")) || b.id-a.id;});
+      shelfBooks.forEach(function(b){
         var st = status(b), p = pages(b), id = b.id;
         if(st === "done") sf++;
-        if(filter !== "all" && filter !== st) return;
+        var q = searchTerm.toLocaleLowerCase();
+        var matchesSearch = !q || [b.ti,b.au,b.g].join(" ").toLocaleLowerCase().includes(q);
+        if(!matchesSearch || (filter !== "all" && filter !== st)) return;
         shown++;
 
         var c = mk("div","card "+st);
@@ -1029,9 +1206,12 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       em.appendChild(ea);
       list.appendChild(em);
     }else if(!list.childNodes.length){
-      list.appendChild(mk("p","empty","Nothing here yet."));
+      list.appendChild(mk("div","card empty",searchTerm ? "No books match “"+searchTerm+"”. Try another search or clear the search field." : "Nothing matches this filter yet."));
     }
 
+    $("shelfCaption").textContent = searchTerm
+      ? "Showing matches for “"+searchTerm+"”."
+      : (lib.b.length ? lib.b.length+" book"+(lib.b.length===1?"":"s")+" across your personal shelves." : "Your reading, all in one place.");
     $("cnt").textContent = fin;
     $("of").textContent = "of "+lib.b.length+" finished";
     $("stats").textContent = rd+" reading now · "+pg+" pages logged";
@@ -1117,6 +1297,43 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
       $("msg").textContent = "Your library was cleared and is being synced.";
     }
   };
+
+  // Search, sort, theme, and keyboard shortcuts.
+  $("bookSearch").addEventListener("input",function(){
+    searchTerm = $("bookSearch").value.trim();
+    render();
+  });
+  $("bookSort").addEventListener("change",function(){
+    sortMode = $("bookSort").value;
+    render();
+  });
+
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme",theme);
+    var dark = theme === "dark";
+    $("themeToggle").innerHTML = (dark ? "☀" : "☾")+" <span>"+(dark ? "Light mode" : "Dark mode")+"</span>";
+    $("themeToggle").setAttribute("aria-label",dark ? "Switch to light mode" : "Switch to dark mode");
+    $("themeToggle").title = dark ? "Switch to light mode" : "Switch to dark mode";
+  }
+  var savedTheme = "";
+  try{savedTheme = localStorage.getItem("readingTrackerTheme")||"";}catch(e){}
+  applyTheme(savedTheme === "dark" || savedTheme === "light" ? savedTheme :
+    (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  $("themeToggle").addEventListener("click",function(){
+    var next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    applyTheme(next);
+    try{localStorage.setItem("readingTrackerTheme",next);}catch(e){}
+  });
+  document.addEventListener("keydown",function(e){
+    var tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : "";
+    var typing = tag==="input" || tag==="textarea" || tag==="select" || (e.target && e.target.isContentEditable);
+    if(e.key==="/" && !typing && !$("app").classList.contains("hide")){
+      e.preventDefault();$("bookSearch").focus();
+    }
+    if((e.key==="Escape") && document.activeElement===$("bookSearch")){
+      $("bookSearch").value="";searchTerm="";render();$("bookSearch").blur();
+    }
+  });
 
   updateGuardianFields();
   resetUI();
