@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,7 +63,7 @@ textarea{width:100%;height:90px;margin:10px 0;font:.8rem ui-monospace,Menlo,mono
 .sync{margin:8px 0 14px;overflow-wrap:anywhere}
 .adminShelf{overflow-wrap:anywhere;white-space:pre-wrap;max-width:100%}
 
-/* ── Editorial redesign ───────────────────────────────────────────── */
+/* Editorial redesign */
 :root{
   color-scheme:light;
   --bg:#f4f2eb;--card:#fffefa;--ink:#202b25;--mute:#718078;
@@ -209,7 +208,6 @@ textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78re
  .section-title{font-size:1.45rem}
  .add-main{padding:9px 12px}
 }
-
 </style>
 </head>
 <body>
@@ -301,7 +299,7 @@ textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78re
 
     <main id="list"></main>
 
-    <section class="card" id="adminShelfPanel">
+    <section class="card" id="adminShelfPanel" hidden>
       <h2>Admin: User Shelves</h2>
       <p class="note">This feature is restricted by the server to accounts listed in the admin table.</p>
       <button class="pri" id="loadAdminShelves" type="button">Load users' shelves</button>
@@ -537,6 +535,7 @@ textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78re
     $("msg").textContent = "";
     $("addm").textContent = "";
     $("addp").classList.add("hide");
+    $("adminShelfPanel").hidden = true;
     $("adminShelfStatus").textContent = "";
     $("adminShelfResults").replaceChildren();
     ["nt","na","ng","np"].forEach(function(id){ $(id).value = ""; });
@@ -686,6 +685,8 @@ textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78re
       ready = true;
       loading = false;
       showApp(true);
+      await updateAdminVisibility(session.user.id, myGeneration);
+      if(myGeneration !== generation || uid !== session.user.id) return;
       $("authTitle").textContent = "Sign in or create an account";
 
       if(!remote){
@@ -922,6 +923,31 @@ textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78re
     });
   }
 
+  async function updateAdminVisibility(userId, sessionGeneration){
+    var panel = $("adminShelfPanel");
+    panel.hidden = true;
+    $("adminShelfStatus").textContent = "";
+    $("adminShelfResults").replaceChildren();
+
+    if(!userId || !sb) return;
+
+    try{
+      var result = await sb.from("app_admins")
+        .select("user_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if(result.error) throw result.error;
+      if(sessionGeneration !== generation || uid !== userId) return;
+
+      panel.hidden = !(result.data && result.data.user_id === userId);
+    }catch(e){
+      // Fail closed: if membership cannot be verified, do not show admin controls.
+      panel.hidden = true;
+      console.error("Administrator membership could not be verified.");
+    }
+  }
+
   async function loadAdminShelves(){
     var button = $("loadAdminShelves");
     button.disabled = true;
@@ -974,7 +1000,6 @@ textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78re
   }
 
   $("loadAdminShelves").addEventListener("click",loadAdminShelves);
-
   function render(){
     var list = $("list");
     var fin = 0, rd = 0, pg = 0, groups = [], gm = {};
@@ -1248,7 +1273,6 @@ textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78re
     $("addm").textContent = "Added. Add another, or tap Cancel to close.";
     $("nt").focus();
   };
-
   document.querySelectorAll("[data-f]").forEach(function(b){
     b.onclick = function(){
       if(!canEdit()) return;
